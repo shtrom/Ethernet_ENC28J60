@@ -28,7 +28,7 @@ static uint8_t macaddr[6];
 static uint8_t ipaddr[4];
 static int16_t info_hdr_len=0;
 static int16_t info_data_len=0;
-static uint8_t seqnum=0xa; // my initial tcp sequence number
+static uint8_t seqnum=0x0A; // my initial tcp sequence number
 
 // The Ip checksum is calculated over the ip header only starting
 // with the header length field and a total length of 20 bytes
@@ -154,8 +154,8 @@ void make_eth(uint8_t *buf)
     //
     //copy the destination mac from the source and fill my mac into src
     while(i<6){
-        buf[ETH_DST_MAC +i]=buf[ETH_SRC_MAC +i];
-        buf[ETH_SRC_MAC +i]=macaddr[i];
+        buf[ETH_DST_MAC_P +i]=buf[ETH_SRC_MAC_P +i];
+        buf[ETH_SRC_MAC_P +i]=macaddr[i];
         i++;
     }
 }
@@ -165,8 +165,8 @@ void make_eth_ip_new(uint8_t *buf, uint8_t* dst_mac) {
     uint8_t i = 0;
     //copy the destination mac from the source and fill my mac into src
     while(i<6){
-        buf[ETH_DST_MAC + i] = dst_mac[i];
-        buf[ETH_SRC_MAC + i] = macaddr[i];
+        buf[ETH_DST_MAC_P + i] = dst_mac[i];
+        buf[ETH_SRC_MAC_P + i] = macaddr[i];
         i++;
     }
 
@@ -316,6 +316,72 @@ void make_tcphead(uint8_t *buf,uint16_t rel_ack_num,uint8_t mss,uint8_t cp_seq)
     }
 }
 
+void make_tcphead2(uint8_t *buf,uint32_t ack_num,uint8_t mss,uint32_t cp_seq)
+{
+	uint32_t seq=0;
+	buf[TCP_SEQACK_H_P]   = (uint8_t)((ack_num >> 24) & 0xFF);
+	buf[TCP_SEQACK_H_P+1] = (uint8_t)((ack_num >> 16) & 0xFF);
+	buf[TCP_SEQACK_L_P]   = (uint8_t)((ack_num >> 8)  & 0xFF);
+	buf[TCP_SEQACK_L_P+1] = (uint8_t)(ack_num & 0xFF);
+
+	seq = (uint32_t)buf[TCP_SEQ_H_P] << 24 | (uint32_t)buf[TCP_SEQ_H_P + 1] << 16  |  (uint32_t)buf[TCP_SEQ_L_P] << 8 | (uint32_t)buf[TCP_SEQ_L_P + 1];
+	seq += cp_seq;
+
+	buf[TCP_SEQ_H_P]   = (uint8_t)((seq >> 24) & 0xFF);
+	buf[TCP_SEQ_H_P+1] = (uint8_t)((seq >> 16) & 0xFF);
+	buf[TCP_SEQ_L_P]   = (uint8_t)((seq >> 8)  & 0xFF);
+	buf[TCP_SEQ_L_P+1] = (uint8_t)(seq & 0xFF);
+
+    // zero the checksum
+    buf[TCP_CHECKSUM_H_P]=0;
+    buf[TCP_CHECKSUM_L_P]=0;
+
+    // The tcp header length is only a 4 bit field (the upper 4 bits).
+    // It is calculated in units of 4 bytes. 
+    // E.g 24 bytes: 24/4=6 => 0x60=header len field
+    //buf[TCP_HEADER_LEN_P]=(((TCP_HEADER_LEN_PLAIN+4)/4)) <<4; // 0x60
+    if (mss){
+        // the only option we set is MSS to 1408:
+        // 1408 in hex is 0x580
+        buf[TCP_OPTIONS_P]=2;
+        buf[TCP_OPTIONS_P+1]=4;
+        buf[TCP_OPTIONS_P+2]=0x05; 
+        buf[TCP_OPTIONS_P+3]=0x80;
+        // 24 bytes:
+        buf[TCP_HEADER_LEN_P]=0x60;
+    }else{
+        // no options:
+        // 20 bytes:
+        buf[TCP_HEADER_LEN_P]=0x50;
+    }
+}
+void make_tcphead3(uint8_t *buf,uint8_t mss)
+{
+    // zero the checksum
+    buf[TCP_CHECKSUM_H_P]=0;
+    buf[TCP_CHECKSUM_L_P]=0;
+
+    // The tcp header length is only a 4 bit field (the upper 4 bits).
+    // It is calculated in units of 4 bytes. 
+    // E.g 24 bytes: 24/4=6 => 0x60=header len field
+    //buf[TCP_HEADER_LEN_P]=(((TCP_HEADER_LEN_PLAIN+4)/4)) <<4; // 0x60
+    if (mss){
+        // the only option we set is MSS to 1408:
+        // 1408 in hex is 0x580
+        buf[TCP_OPTIONS_P]=2;
+        buf[TCP_OPTIONS_P+1]=4;
+        buf[TCP_OPTIONS_P+2]=0x05; 
+        buf[TCP_OPTIONS_P+3]=0x80;
+        // 24 bytes:
+        buf[TCP_HEADER_LEN_P]=0x60;
+    }else{
+        // no options:
+        // 20 bytes:
+        buf[TCP_HEADER_LEN_P]=0x50;
+    }
+}
+
+
 void make_arp_answer_from_request(uint8_t *buf)
 {
     uint8_t i=0;
@@ -415,6 +481,20 @@ uint16_t get_tcp_data_pointer(void)
     }
 }
 
+uint16_t get_len_info(uint8_t *buf)
+{
+	int16_t my_info_data_len=0, my_info_hdr_len=0;
+    my_info_data_len=(buf[IP_TOTLEN_H_P]<<8)|(buf[IP_TOTLEN_L_P]&0xff);
+    my_info_data_len-=IP_HEADER_LEN;
+    my_info_hdr_len=(buf[TCP_HEADER_LEN_P]>>4)*4; // generate len in bytes;
+    my_info_data_len-=my_info_hdr_len;
+    if (my_info_data_len<=0){
+        my_info_data_len=0;
+    }
+	
+	return (uint16_t)my_info_data_len;
+}
+
 // do some basic length calculations and store the result in static varibales
 void init_len_info(uint8_t *buf)
 {
@@ -497,6 +577,33 @@ void make_tcp_ack_from_any(uint8_t *buf) {
     enc28j60PacketSend(IP_HEADER_LEN + TCP_HEADER_LEN_PLAIN + ETH_HEADER_LEN, buf);
 }
 
+// Make just an ack packet with no tcp data inside
+// This will modify the eth/ip/tcp header 
+void make_tcp_ack_from_any_data(uint8_t *buf, uint16_t dlen, uint32_t ack, uint32_t sent, uint8_t head) {
+    uint16_t j;
+    //make_eth(buf);
+    // fill the header:
+    buf[TCP_FLAG_P] = TCP_FLAG_ACK_V;
+
+	if(head)
+		make_tcphead2(buf, ack, 0, sent);
+
+    // total length field in the IP header must be set:
+    // 20 bytes IP + 20 bytes tcp (when no options) + len of data
+    j=IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+dlen;
+    buf[IP_TOTLEN_H_P]=j>>8;
+    buf[IP_TOTLEN_L_P]=j& 0xff;
+    fill_ip_hdr_checksum(buf);
+    // zero the checksum
+    buf[TCP_CHECKSUM_H_P]=0;
+    buf[TCP_CHECKSUM_L_P]=0;
+    // calculate the checksum, len=8 (start from ip.src) + TCP_HEADER_LEN_PLAIN + data len
+    j=checksum(&buf[IP_SRC_P], 8+TCP_HEADER_LEN_PLAIN+dlen,2);
+    buf[TCP_CHECKSUM_H_P]=j>>8;
+    buf[TCP_CHECKSUM_L_P]=j& 0xff;
+    enc28j60PacketSend(IP_HEADER_LEN+TCP_HEADER_LEN_PLAIN+dlen+ETH_HEADER_LEN,buf);
+}
+
 // you must have called init_len_info at some time before calling this function
 // dlen is the amount of tcp data (http data) we send in this packet
 // You can use this function only immediately after make_tcp_ack_from_any
@@ -534,8 +641,8 @@ void make_arp_request(uint8_t *buf, uint8_t *server_ip) {
     uint8_t i;
 
     for (i = 0; i < 6; i++) {
-        buf[ETH_DST_MAC + i] = 0xff;
-        buf[ETH_SRC_MAC + i] = macaddr[i];
+        buf[ETH_DST_MAC_P + i] = 0xff;
+        buf[ETH_SRC_MAC_P + i] = macaddr[i];
     }
 
     buf[ETH_TYPE_H_P] = ETHTYPE_ARP_H_V;
@@ -631,14 +738,14 @@ void tcp_client_send_packet(uint8_t *buf,uint16_t dest_port, uint16_t src_port, 
     // initial tcp sequence number,require to setup for first transmit/receive
     if(max_segment_size)
     {
-        // put inital seq number
+        // put initial seq number
         buf[TCP_SEQ_H_P+0]= 0;
         buf[TCP_SEQ_H_P+1]= 0;
-        // we step only the second byte, this allows us to send packts
+        // we step only the second byte, this allows us to send packets
         // with 255 bytes or 512 (if we step the initial seqnum by 2)
         buf[TCP_SEQ_H_P+2]= seqnum;
         buf[TCP_SEQ_H_P+3]= 0;
-        // step the inititial seq num by something we will not use
+        // step the initial seq num by something we will not use
         // during this tcp session:
         seqnum+=2;
 
@@ -678,7 +785,7 @@ void tcp_client_send_packet(uint8_t *buf,uint16_t dest_port, uint16_t src_port, 
     buf[ TCP_WINDOWSIZE_H_P ] = ((600 - IP_HEADER_LEN - ETH_HEADER_LEN)>>8) & 0xff;
     buf[ TCP_WINDOWSIZE_L_P ] = (600 - IP_HEADER_LEN - ETH_HEADER_LEN) & 0xff;
 
-    // setup urgend pointer (not used -> 0)
+    // setup urgent pointer (not used -> 0)
     buf[ TCP_URGENT_PTR_H_P ] = 0;
     buf[ TCP_URGENT_PTR_L_P ] = 0;
 

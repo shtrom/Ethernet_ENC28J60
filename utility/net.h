@@ -35,9 +35,9 @@
 // Ethernet type field (2bytes):
 #define ETH_TYPE_H_P 12
 #define ETH_TYPE_L_P 13
-//
-#define ETH_DST_MAC 0
-#define ETH_SRC_MAC 6
+// Ethernet destination / source MAC address
+#define ETH_DST_MAC_P 0
+#define ETH_SRC_MAC_P 6
 
 
 // ******* ARP *******
@@ -157,8 +157,10 @@
 #define TCP_DST_PORT_L_P 	0x25
 #define TCP_SEQ_P  			0x26	// the tcp seq number is 4 bytes 0x26-0x29
 #define TCP_SEQ_H_P 		0x26
+#define TCP_SEQ_L_P         0x28
 #define TCP_SEQACK_P  		0x2A	// 4 bytes
 #define TCP_SEQACK_H_P 		0x2A
+#define TCP_SEQACK_L_P      0x2C
 #define TCP_HEADER_LEN_P 	0x2E
 #define TCP_FLAGS_P 		0x2F
 #define TCP_FLAG_P			0x2F

@@ -2,8 +2,8 @@
 #define Ethernet_h
 
 #include <inttypes.h>
-#include "Client.h"
-#include "Server.h"
+#include "EthernetClient.h"
+#include "EthernetServer.h"
 extern "C" {
     #include "utility/socket.h"
 }
@@ -20,8 +20,8 @@ public:
   uint8_t *returnDebug();
   void clearDebug();
 #endif
-  friend class Client;
-  friend class Server;
+  friend class EthernetClient;
+  friend class EthernetServer;
 };
 
 extern EthernetClass Ethernet;

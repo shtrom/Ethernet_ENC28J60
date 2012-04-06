@@ -6,26 +6,30 @@ extern "C" {
 #include "Arduino.h"
 
 #include "Ethernet.h"
-#include "Client.h"
-#include "Server.h"
+#include "EthernetClient.h"
+#include "EthernetServer.h"
 
-uint16_t Client::_srcport = 0;
+uint16_t EthernetClient::_srcport = 0;
 
-Client::Client(uint8_t sock) {
+EthernetClient::EthernetClient() {
+	_sock = 255;
+}
+
+EthernetClient::EthernetClient(uint8_t sock) {
   _sock = sock;
 }
 
-Client::Client(uint8_t *ip, uint16_t port) {
+EthernetClient::EthernetClient(uint8_t *ip, uint16_t port) {
   _ip = ip;
   _port = port;
   _sock = 255;
 }
 
-uint8_t Client::connect() {
+uint8_t EthernetClient::connect() {
   if (_sock != 255)
     return 0;
 #ifdef ETHERSHIELD_DEBUG
-    sprintf(_DEBUG, "Client::connect() DEBUG A. _sock = %d",
+    sprintf(_DEBUG, "EthernetClient::connect() DEBUG A. _sock = %d",
             _sock);
 #endif
 
@@ -38,7 +42,7 @@ uint8_t Client::connect() {
   }
 
 #ifdef ETHERSHIELD_DEBUG
-    sprintf(_DEBUG, "Client::connect() DEBUG B. _sock = %d",
+    sprintf(_DEBUG, "EthernetClient::connect() DEBUG B. _sock = %d",
             _sock);
 #endif
   if (_sock == 255)
@@ -49,7 +53,7 @@ uint8_t Client::connect() {
   socket(_sock, Sn_MR_TCP, _srcport + 1024, 0);
 
 #ifdef ETHERSHIELD_DEBUG
-    sprintf(_DEBUG, "Client::connect() DEBUG C. _sock = %d",
+    sprintf(_DEBUG, "EthernetClient::connect() DEBUG C. _sock = %d",
             _sock);
 #endif
   if (!::connect(_sock, _ip, _port)) {
@@ -58,7 +62,7 @@ uint8_t Client::connect() {
   }
 
 #ifdef ETHERSHIELD_DEBUG
-    sprintf(_DEBUG, "Client::connect() DEBUG D. _sock = %d", _sock);
+    sprintf(_DEBUG, "EthernetClient::connect() DEBUG D. _sock = %d", _sock);
 #endif
   while (status() != SOCK_ESTABLISHED) {
     delay(1);
@@ -69,45 +73,45 @@ uint8_t Client::connect() {
   }
 
 #ifdef ETHERSHIELD_DEBUG
-    sprintf(_DEBUG, "Client::connect() DEBUG E. _sock = %d", _sock);
+    sprintf(_DEBUG, "EthernetClient::connect() DEBUG E. _sock = %d", _sock);
 #endif
   return 1;
 }
 
 #ifdef ETHERSHIELD_DEBUG
-char *Client::debug() {
+char *EthernetClient::debug() {
     return _DEBUG;
 }
 #endif
 
-size_t Client::write(uint8_t b) {
+size_t EthernetClient::write(uint8_t b) {
     if (_sock != 255) {
         send(_sock, &b, 1);
     }
     return 1; //TODO: change to real size
 }
 
-size_t Client::write(const char *str) {
+size_t EthernetClient::write(const char *str) {
     if (_sock != 255) {
         send(_sock, (const uint8_t *)str, strlen(str));
     }
     return 1; //TODO: change to real size
 }
 
-size_t Client::write(const uint8_t *buf, size_t size) {
+size_t EthernetClient::write(const uint8_t *buf, size_t size) {
     if (_sock != 255) {
         send(_sock, buf, size);
     }
     return 1; //TODO: change to real size
 }
 
-int Client::available() {
+int EthernetClient::available() {
   if (_sock != 255)
     return getSn_RX_RSR(_sock);
   return 0;
 }
 
-int Client::read() {
+int EthernetClient::read() {
   uint8_t b;
   if (!available())
     return -1;
@@ -115,12 +119,12 @@ int Client::read() {
   return b;
 }
 
-void Client::flush() {
+void EthernetClient::flush() {
   while (available())
     read();
 }
 
-void Client::stop() {
+void EthernetClient::stop() {
   if (_sock == 255)
     return;
 
@@ -140,7 +144,7 @@ void Client::stop() {
   _sock = 255;
 }
 
-uint8_t Client::connected() {
+uint8_t EthernetClient::connected() {
   if (_sock == 255) {
     return 0;
   } else {
@@ -150,7 +154,7 @@ uint8_t Client::connected() {
   }
 }
 
-uint8_t Client::status() {
+uint8_t EthernetClient::status() {
   if (_sock == 255) {
     return SOCK_CLOSED;
   } else {
@@ -159,18 +163,18 @@ uint8_t Client::status() {
 }
 
 // the next three functions are a hack so we can compare the client returned
-// by Server::available() to null, or use it as the condition in an
+// by EthernetServer::available() to null, or use it as the condition in an
 // if-statement.  this lets us stay compatible with the Processing network
 // library.
 
-uint8_t Client::operator==(int p) {
+uint8_t EthernetClient::operator==(int p) {
   return _sock == 255;
 }
 
-uint8_t Client::operator!=(int p) {
+uint8_t EthernetClient::operator!=(int p) {
   return _sock != 255;
 }
 
-Client::operator bool() {
+EthernetClient::operator bool() {
   return _sock != 255;
 }

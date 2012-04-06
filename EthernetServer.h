@@ -1,17 +1,17 @@
-#ifndef Server_h
-#define Server_h
+#ifndef EthernetServer_h
+#define EthernetServer_h
 
 #include "Print.h"
 
-class Client;
+class EthernetClient;
 
-class Server : public Print {
+class EthernetServer : public Print {
 private:
   uint16_t _port;
   void accept();
 public:
-  Server(uint16_t);
-  Client available();
+  EthernetServer(uint16_t);
+  EthernetClient available();
   void begin();
   virtual size_t write(uint8_t);
   virtual size_t write(const char *str);

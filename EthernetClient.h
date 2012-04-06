@@ -1,10 +1,10 @@
-#ifndef Client_h
-#define Client_h
+#ifndef EthernetClient_h
+#define EthernetClient_h
 
 #include "Print.h"
 #include "utility/socket.h"
 
-class Client : public Print {
+class EthernetClient : public Print {
 private:
   static uint16_t _srcport;
   uint8_t _sock;
@@ -15,8 +15,9 @@ private:
 #endif
 
 public:
-  Client(uint8_t);
-  Client(uint8_t *, uint16_t);
+  EthernetClient();
+  EthernetClient(uint8_t);
+  EthernetClient(uint8_t *, uint16_t);
   uint8_t status();
   uint8_t connect();
   virtual size_t write(uint8_t);
@@ -33,7 +34,7 @@ public:
   uint8_t operator==(int);
   uint8_t operator!=(int);
   operator bool();
-  friend class Server;
+  friend class EthernetServer;
 };
 
 #endif
