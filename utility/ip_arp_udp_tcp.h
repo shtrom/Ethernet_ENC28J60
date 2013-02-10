@@ -34,7 +34,7 @@ extern void make_tcphead3(uint8_t *buf,uint8_t mss);
 extern void init_len_info(uint8_t *buf);
 extern uint16_t get_len_info(uint8_t *buf);
 extern uint16_t get_tcp_data_pointer(void);
-extern uint16_t fill_tcp_data_p(uint8_t *buf,uint16_t pos, const prog_char *progmem_s);
+extern uint16_t fill_tcp_data_p(uint8_t *buf,uint16_t pos, const char *progmem_s PROGMEM);
 extern uint16_t fill_tcp_data(uint8_t *buf,uint16_t pos, const char *s);
 extern uint16_t fill_tcp_data2(uint8_t *buf, uint16_t pos, const char *s, uint8_t length);
 extern void make_tcp_ack_from_any(uint8_t *buf);
