@@ -3,7 +3,7 @@
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 byte ip[] = { 192, 168, 1, 123 };
 
-Server server(80);
+EthernetServer server(80);
 
 void setup() {
   Ethernet.begin(mac, ip);
@@ -11,7 +11,7 @@ void setup() {
 }
 
 void loop() {
-  Client client = server.available();
+  EthernetClient client = server.available();
   if (client) {
     boolean current_line_is_blank = true;
     while (client.connected()) {

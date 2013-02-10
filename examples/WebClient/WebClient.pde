@@ -4,7 +4,7 @@ byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 byte ip[] = { 192, 168, 42, 42 };
 byte server[] = { 192, 168, 42, 1 };
 
-Client client(server, 80);
+EthernetClient client(server, 80);
 
 void setup() {
   Ethernet.begin(mac, ip);

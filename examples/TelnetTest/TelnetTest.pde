@@ -1,11 +1,9 @@
-#include <Server.h>
 #include <Ethernet.h>
-#include <Client.h>
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 byte ip[] = { 192, 168, 1, 123 };
 
-Server server(80);
+EthernetServer server(80);
 
 #ifdef ETHERSHIELD_DEBUG
 #include <inttypes.h>
@@ -33,7 +31,7 @@ void setup() {
 
 void loop()
 {
-  Client client = server.available();
+  EthernetClient client = server.available();
 
 #ifdef ETHERSHIELD_DEBUG
   printSocketDebug();

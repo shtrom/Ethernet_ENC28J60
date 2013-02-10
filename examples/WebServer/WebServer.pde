@@ -1,3 +1,4 @@
+#include <Ethernet.h>
 /*
  * Web Server
  *
@@ -9,7 +10,7 @@
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 byte ip[] = { 192, 168, 1, 123 };
 
-Server server(80);
+EthernetServer server(80);
 
 void setup()
 {
@@ -19,7 +20,7 @@ void setup()
 
 void loop()
 {
-  Client client = server.available();
+  EthernetClient client = server.available();
   if (client) {
     // an http request ends with a blank line
     boolean current_line_is_blank = true;

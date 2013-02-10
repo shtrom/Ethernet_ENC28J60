@@ -5,7 +5,7 @@ byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 byte ip[] = { 192, 168, 1, 123 };
 char link[30], LEDStatus[4];
 
-Server server(80);
+EthernetServer server(80);
 
 void setup() {
   pinMode(LED, OUTPUT);
@@ -14,7 +14,7 @@ void setup() {
 }
 
 void loop() {
-  Client client = server.available();
+  EthernetClient client = server.available();
   if (client) {
     char request[10];
     int i = 0;

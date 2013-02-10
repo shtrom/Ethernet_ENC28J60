@@ -4,7 +4,7 @@
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 byte ip[] = { 192, 168, 1, 123 };
 
-Server server(80);
+EthernetServer server(80);
 
 char response[SIZE];
 int size = 0;
@@ -23,7 +23,7 @@ void setup() {
 }
 
 void loop() {
-	Client client = server.available();
+	EthernetClient client = server.available();
 
 	if (client) {
 

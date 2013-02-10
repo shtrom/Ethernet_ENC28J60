@@ -14,7 +14,7 @@ byte gateway[] = { 10, 0, 0, 1 };
 byte subnet[] = { 255, 255, 0, 0 };
 
 // telnet defaults to port 23
-Server server(23);
+EthernetServer server(23);
 
 void setup()
 {
@@ -27,7 +27,7 @@ void setup()
 
 void loop()
 {
-  Client client = server.available();
+  EthernetClient client = server.available();
   if (client) {
     server.write(client.read());
   }
