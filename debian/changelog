@@ -1,0 +1,5 @@
+arduino-ethernet-enc28j60 (20120405-1) unstable; urgency=low
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Olivier Mehani <shtrom-debian@ssji.net>  Mon, 11 Feb 2013 00:00:48 +1100

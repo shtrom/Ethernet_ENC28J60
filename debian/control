@@ -1,0 +1,17 @@
+Source: arduino-ethernet-enc28j60
+Priority: extra
+Maintainer: Olivier Mehani <shtrom-debian@ssji.net>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.3
+Section: libs
+Homepage: https://github.com/kR105/Ethernet_ENC28J60
+#Vcs-Git: git://git.debian.org/collab-maint/arduino-ethernet-enc28j60.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/arduino-ethernet-enc28j60.git;a=summary
+
+Package: arduino-ethernet-enc28j60
+Section: libs
+Architecture: all
+Depends: arduino-core (>=1.0)
+Description: Arduino-compatible socket layer library for ENC28J60 Ethernet EtherShields
+ This library provides a TCP/IP socket API for ENC28J60-based Ethernet
+ EtherShields that is compatible with the standard library for W5100 chips.
